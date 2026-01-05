@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LRU Cache Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #0f4c75;
+        }
+        
+        h1 {
+            color: #4cc9f0;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        
+        .description {
+            max-width: 800px;
+            margin: 0 auto 20px;
+            color: #b0b0b0;
+            font-size: 1.1rem;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .controls {
+            flex: 1;
+            min-width: 300px;
+            background-color: #16213e;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .visualization {
+            flex: 2;
+            min-width: 300px;
+            background-color: #16213e;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        h2 {
+            color: #4cc9f0;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #b0b0b0;
+        }
+        
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        input, select {
+            background-color: #0f3460;
+            color: #e6e6e6;
+            border: 1px solid #1a5a8a;
+        }
+        
+        button {
+            background-color: #0f4c75;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #1a5a8a;
+        }
+        
+        .cache-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 400px;
+        }
+        
+        .cache-slots {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .cache-slot {
+            width: 120px;
+            height: 120px;
+            background-color: #0f3460;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .cache-slot.active {
+            border: 3px solid #4cc9f0;
+            transform: scale(1.05);
+        }
+        
+        .cache-slot.most-recent {
+            background-color: #0f4c75;
+        }
+        
+        .cache-slot.least-recent {
+            background-color: #1a1a2e;
+        }
+        
+        .key {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #4cc9f0;
+        }
+        
+        .value {
+            font-size: 1.2rem;
+            color: #e6e6e6;
+            margin-top: 5px;
+        }
+        
+        .slot-label {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 0.8rem;
+            color: #b0b0b0;
+        }
+        
+        .operations-log {
+            background-color: #0f3460;
+            padding: 15px;
+            border-radius: 5px;
+            height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        
+        .log-entry {
+            padding: 8px;
+            border-bottom: 1px solid #1a5a8a;
+            font-family: monospace;
+            color: #e6e6e6;
+        }
+        
+        .log-entry.hit {
+            color: #4ade80;
+        }
+        
+        .log-entry.miss {
+            color: #f87171;
+        }
+        
+        .log-entry.add {
+            color: #4cc9f0;
+        }
+        
+        .log-entry.evict {
+            color: #f59e0b;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-box {
+            background-color: #0f3460;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            min-width: 150px;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #4cc9f0;
+        }
+        
+        .stat-label {
+            color: #b0b0b0;
+            margin-top: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #b0b0b0;
+            font-size: 0.9rem;
+            padding-top: 20px;
+            border-top: 1px solid #0f4c75;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .cache-slot {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>LRU Cache Visualizer</h1>
+            <p class="description">
+                An interactive visualization of the Least Recently Used (LRU) cache algorithm. 
+                The LRU cache evicts the least recently used item when the cache is full and a new item needs to be added.
+            </p>
+        </header>
+        
+        <div class="main-content">
+            <div class="controls">
+                <div class="control-group">
+                    <h2>Cache Configuration</h2>
+                    <label for="cache-size">Cache Size (Max Items):</label>
+                    <input type="number" id="cache-size" min="1" max="8" value="4">
+                    
+                    <label for="operation">Operation:</label>
+                    <select id="operation">
+                        <option value="get">Get Item by Key</option>
+                        <option value="put">Put Item (Key-Value)</option>
+                    </select>
+                    
+                    <div id="get-controls">
+                        <label for="get-key">Key to Retrieve:</label>
+                        <input type="text" id="get-key" placeholder="Enter key (e.g., A, B, C)">
+                    </div>
+                    
+                    <div id="put-controls" style="display: none;">
+                        <label for="put-key">Key:</label>
+                        <input type="text" id="put-key" placeholder="Enter key (e.g., A, B, C)">
+                        
+                        <label for="put-value">Value:</label>
+                        <input type="text" id="put-value" placeholder="Enter value">
+                    </div>
+                    
+                    <button id="execute-btn">Execute Operation</button>
+                    <button id="reset-btn">Reset Cache</button>
+                </div>
+                
+                <div class="control-group">
+                    <h2>How LRU Works</h2>
+                    <ul style="color: #b0b0b0; padding-left: 20px;">
+                        <li>When accessing an item, it becomes "most recently used"</li>
+                        <li>When cache is full, the "least recently used" item is evicted</li>
+                        <li>Cache hits are faster than cache misses</li>
+                        <li>Try adding more items than cache size to see eviction</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="visualization">
+                <h2>Cache Visualization</h2>
+                <div class="cache-container">
+                    <div class="cache-slots" id="cache-slots">
+                        <!-- Cache slots will be dynamically generated here -->
+                    </div>
+                    
+                    <div class="operations-log">
+                        <h3>Operations Log</h3>
+                        <div id="log-entries">
+                            <!-- Log entries will be dynamically added here -->
+                        </div>
+                    </div>
+                    
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="stat-value" id="hits-count">0</div>
+                            <div class="stat-label">Cache Hits</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="misses-count">0</div>
+                            <div class="stat-label">Cache Misses</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="evictions-count">0</div>
+                            <div class="stat-label">Evictions</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>LRU Cache Visualizer | Created with HTML, CSS, and JavaScript</p>
+        </div>
+    </div>
+
+    <script>
+        class LRUCache {
+            constructor(capacity) {
+                this.capacity = capacity;
+                this.cache = new Map();
+                this.hits = 0;
+                this.misses = 0;
+                this.evictions = 0;
+                this.operationLog = [];
+            }
+            
+            get(key) {
+                if (this.cache.has(key)) {
+                    // Move to end to mark as most recently used
+                    const value = this.cache.get(key);
+                    this.cache.delete(key);
+                    this.cache.set(key, value);
+                    this.hits++;
+                    this.logOperation(`Cache HIT for key: ${key}`, 'hit');
+                    return value;
+                } else {
+                    this.misses++;
+                    this.logOperation(`Cache MISS for key: ${key}`, 'miss');
+                    return null;
+                }
+            }
+            
+            put(key, value) {
+                if (this.cache.has(key)) {
+                    // Remove existing entry to update its position
+                    this.cache.delete(key);
+                    this.logOperation(`Updated key: ${key} with value: ${value}`, 'add');
+                } else {
+                    // Check if cache is full
+                    if (this.cache.size >= this.capacity) {
+                        // Remove least recently used item (first item in Map)
+                        const lruKey = this.cache.keys().next().value;
+                        this.cache.delete(lruKey);
+                        this.evictions++;
+                        this.logOperation(`Evicted key: ${lruKey} (LRU)`, 'evict');
+                    }
+                    this.logOperation(`Added key: ${key} with value: ${value}`, 'add');
+                }
+                
+                // Add new entry at the end (most recently used)
+                this.cache.set(key, value);
+            }
+            
+            logOperation(message, type) {
+                this.operationLog.unshift({
+                    message,
+                    type,
+                    timestamp: new Date().toLocaleTimeString()
+                });
+                
+                // Keep only last 10 log entries
+                if (this.operationLog.length > 10) {
+                    this.operationLog.pop();
+                }
+            }
+            
+            getCacheEntries() {
+                // Convert Map to array of [key, value] pairs
+                return Array.from(this.cache.entries());
+            }
+            
+            reset() {
+                this.cache.clear();
+                this.hits = 0;
+                this.misses = 0;
+                this.evictions = 0;
+                this.operationLog = [];
+            }
+        }
+        
+        // DOM Elements
+        const cacheSizeInput = document.getElementById('cache-size');
+        const operationSelect = document.getElementById('operation');
+        const getControls = document.getElementById('get-controls');
+        const putControls = document.getElementById('put-controls');
+        const getKeyInput = document.getElementById('get-key');
+        const putKeyInput = document.getElementById('put-key');
+        const putValueInput = document.getElementById('put-value');
+        const executeBtn = document.getElementById('execute-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const cacheSlotsContainer = document.getElementById('cache-slots');
+        const logEntriesContainer = document.getElementById('log-entries');
+        const hitsCountElement = document.getElementById('hits-count');
+        const missesCountElement = document.getElementById('misses-count');
+        const evictionsCountElement = document.getElementById('evictions-count');
+        
+        // Initialize LRU Cache
+        let lruCache = new LRUCache(parseInt(cacheSizeInput.value));
+        
+        // Generate initial cache slots
+        function generateCacheSlots() {
+            cacheSlotsContainer.innerHTML = '';
+            const cacheEntries = lruCache.getCacheEntries();
+            
+            // Create slots for each cache entry
+            cacheEntries.forEach(([key, value], index) => {
+                const slot = document.createElement('div');
+                slot.className = 'cache-slot';
+                
+                // Mark first item as least recently used
+                if (index === 0 && cacheEntries.length > 1) {
+                    slot.classList.add('least-recent');
+                }
+                
+                // Mark last item as most recently used
+                if (index === cacheEntries.length - 1 && cacheEntries.length > 1) {
+                    slot.classList.add('most-recent');
+                }
+                
+                slot.innerHTML = `
+                    <div class="slot-label">Slot ${index + 1}</div>
+                    <div class="key">${key}</div>
+                    <div class="value">${value}</div>
+                `;
+                
+                cacheSlotsContainer.appendChild(slot);
+            });
+            
+            // Create empty slots for remaining capacity
+            const emptySlots = lruCache.capacity - cacheEntries.length;
+            for (let i = 0; i < emptySlots; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'cache-slot';
+                slot.innerHTML = `
+                    <div class="slot-label">Slot ${cacheEntries.length + i + 1}</div>
+                    <div class="key">-</div>
+                    <div class="value">Empty</div>
+                `;
+                cacheSlotsContainer.appendChild(slot);
+            }
+        }
+        
+        // Update log display
+        function updateLogDisplay() {
+            logEntriesContainer.innerHTML = '';
+            
+            lruCache.operationLog.forEach(entry => {
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${entry.type}`;
+                logEntry.textContent = `[${entry.timestamp}] ${entry.message}`;
+                logEntriesContainer.appendChild(logEntry);
+            });
+        }
+        
+        // Update statistics display
+        function updateStatsDisplay() {
+            hitsCountElement.textContent = lruCache.hits;
+            missesCountElement.textContent = lruCache.misses;
+            evictionsCountElement.textContent = lruCache.evictions;
+        }
+        
+        // Execute the selected operation
+        function executeOperation() {
+            const operation = operationSelect.value;
+            
+            if (operation === 'get') {
+                const key = getKeyInput.value.trim().toUpperCase();
+                if (!key) {
+                    alert('Please enter a key to retrieve');
+                    return;
+                }
+                
+                const value = lruCache.get(key);
+                
+                // Highlight the accessed cache slot
+                highlightAccessedSlot(key, value !== null);
+                
+                if (value !== null) {
+                    alert(`Retrieved key: ${key}, value: ${value}`);
+                } else {
+                    alert(`Key "${key}" not found in cache!`);
+                }
+                
+                getKeyInput.value = '';
+                
+            } else if (operation === 'put') {
+                const key = putKeyInput.value.trim().toUpperCase();
+                const value = putValueInput.value.trim();
+                
+                if (!key || !value) {
+                    alert('Please enter both key and value');
+                    return;
+                }
+                
+                lruCache.put(key, value);
+                
+                // Highlight the added/updated cache slot
+                highlightAccessedSlot(key, true);
+                
+                putKeyInput.value = '';
+                putValueInput.value = '';
+            }
+            
+            // Update the visualization
+            generateCacheSlots();
+            updateLogDisplay();
+            updateStatsDisplay();
+        }
+        
+        // Highlight the accessed cache slot with animation
+        function highlightAccessedSlot(key, found) {
+            // First, remove active class from all slots
+            const slots = document.querySelectorAll('.cache-slot');
+            slots.forEach(slot => slot.classList.remove('active'));
+            
+            // Find and highlight the slot with the matching key
+            setTimeout(() => {
+                const cacheEntries = lruCache.getCacheEntries();
+                const index = cacheEntries.findIndex(([k, v]) => k === key);
+                
+                if (index !== -1 && found) {
+                    const targetSlot = document.querySelectorAll('.cache-slot')[index];
+                    if (targetSlot) {
+                        targetSlot.classList.add('active');
+                        
+                        // Remove highlight after 1 second
+                        setTimeout(() => {
+                            targetSlot.classList.remove('active');
+                        }, 1000);
+                    }
+                }
+            }, 100);
+        }
+        
+        // Reset the cache
+        function resetCache() {
+            const newSize = parseInt(cacheSizeInput.value);
+            lruCache = new LRUCache(newSize);
+            generateCacheSlots();
+            updateLogDisplay();
+            updateStatsDisplay();
+        }
+        
+        // Update UI based on selected operation
+        function updateOperationUI() {
+            if (operationSelect.value === 'get') {
+                getControls.style.display = 'block';
+                putControls.style.display = 'none';
+            } else {
+                getControls.style.display = 'none';
+                putControls.style.display = 'block';
+            }
+        }
+        
+        // Initialize the visualization
+        function init() {
+            generateCacheSlots();
+            updateOperationUI();
+            updateStatsDisplay();
+            
+            // Add some initial cache entries for demo purposes
+            lruCache.put('A', 'Apple');
+            lruCache.put('B', 'Banana');
+            lruCache.put('C', 'Cherry');
+            generateCacheSlots();
+            updateLogDisplay();
+            updateStatsDisplay();
+        }
+        
+        // Event Listeners
+        operationSelect.addEventListener('change', updateOperationUI);
+        executeBtn.addEventListener('click', executeOperation);
+        resetBtn.addEventListener('click', resetCache);
+        cacheSizeInput.addEventListener('change', resetCache);
+        
+        // Allow Enter key to execute operation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                executeOperation();
+            }
+        });
+        
+        // Initialize the visualizer
+        init();
+    </script>
+</body>
+</html>
