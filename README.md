@@ -2,7 +2,7 @@
 
 **An interactive LRU cache visualization project.**
 
-Live demo: https://23wh1a05e7.github.io/SortingAlgorithmVisualizer/
+Live demo: https://23wh1a05e7.github.io/LRUCacheVisualizer/
 
 ---
 
