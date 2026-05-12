@@ -5,69 +5,82 @@
 Live demo: https://23wh1a05e7.github.io/LRUCacheVisualizer/
 
 ---
+# LRU Cache
 
-## Project Overview
+## Overview
 
-This project demonstrates the Least Recently Used (LRU) cache eviction policy through a browser-based visualizer. It helps learners see how `get` and `put` operations affect cache contents and eviction order.
+This repository contains an implementation of an LRU (Least Recently Used) cache. The cache stores a limited number of key-value pairs and evicts the least recently used item when capacity is exceeded.
 
 ## Features
 
-- Set cache capacity
-- `get(key)` to access stored values
-- `put(key, value)` to add or update cache entries
-- Visual indicator for hits and misses
-- Eviction of the least recently used item when capacity is exceeded
-- Live animation of cache order and internal state
+- O(1) `get` and `put` operations
+- Fixed capacity
+- Automatic eviction of least recently used entries
+- Reusable cache interface
+
+## How it Works
+
+The implementation uses:
+- a hash map for fast key lookup
+- a doubly linked list to track usage order
+
+When a key is accessed or inserted, it moves to the head of the list as the most recently used entry. When the cache reaches its capacity, the tail entry is removed.
+
+## API
+
+### `LRUCache(capacity)`
+Creates a new cache with the specified capacity.
+
+### `get(key)`
+- Returns the value associated with `key` if it exists
+- Moves the item to the most recently used position
+- Returns `-1` if the key is not found
+
+### `put(key, value)`
+- Inserts or updates a key-value pair
+- Moves the key to the most recently used position
+- Evicts the least recently used item if capacity is exceeded
+
+## Example
+
+```javascript
+const cache = new LRUCache(3);
+
+cache.put('a', 1);
+cache.put('b', 2);
+cache.put('c', 3);
+console.log(cache.get('a')); // 1
+
+cache.put('d', 4); // evicts 'b'
+console.log(cache.get('b')); // -1
+console.log(cache.get('c')); // 3
+```
+
+## Complexity
+
+- `get`: O(1)
+- `put`: O(1)
 
 ## Installation
 
-### Prerequisites
-- Node.js
-- npm
+1. Clone the repository.
+2. Add the cache implementation to your project.
+3. Use the `LRUCache` class in your application or tests.
 
-### Setup
+## Testing
 
-```bash
-git clone https://github.com/23wh1a05e7/SortingAlgorithmVisualizer.git
-cd SortingAlgorithmVisualizer
-npm install
-npm start
-```
-
-Open `http://localhost:3000` in your browser.
-
-## Build
-
-```bash
-npm run build
-```
-
-## Deployment (GitHub Pages)
-
-Add the following to `package.json`:
-
-```json
-"homepage": "https://23wh1a05e7.github.io/SortingAlgorithmVisualizer",
-"scripts": {
-  "predeploy": "npm run build",
-  "deploy": "gh-pages -d build"
-}
-```
-
-Then run:
-
-```bash
-npm install --save-dev gh-pages
-npm run deploy
-```
-
-## How LRU Works
-
-- `get(key)`: Returns the value if the key exists, and marks that key as most recently used.
-- `put(key, value)`: Adds or updates the key, marks it as most recently used, and evicts the least recently used key if needed.
+Recommended tests:
+- retrieving existing keys
+- missing keys return `-1`
+- eviction when capacity is reached
+- updating an existing key
+- edge cases such as zero capacity
 
 ## Notes
 
-- Use the cache form to simulate operations.
-- The visualizer is designed for learning and algorithm explanation.
-- Extend it by adding other cache policies such as FIFO, LFU, or MRU.
+- This cache is useful for performance-sensitive workloads.
+- It is commonly used in applications that need to cache recent results while limiting memory usage.
+
+---
+
+**Last Updated**: May 2026
