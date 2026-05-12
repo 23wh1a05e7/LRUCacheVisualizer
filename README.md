@@ -5,7 +5,6 @@
 Live demo: https://23wh1a05e7.github.io/LRUCacheVisualizer/
 
 ---
-# LRU Cache
 
 ## Overview
 
